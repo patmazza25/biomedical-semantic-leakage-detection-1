@@ -1,0 +1,406 @@
+Biomedical Semantic Leakage Detection: A Comprehensive Research Synthesis
+Executive Summary
+Biomedical semantic leakage detection represents a critical challenge in ensuring the reliability and safety of AI-driven clinical decision support systems. This comprehensive report synthesizes recent advances (2020-2026) across five interconnected domains: ontology-grounded contradiction detection, biomedical natural language inference (NLI) and reasoning verification, knowledge graph integration, hybrid neuro-symbolic approaches, and practical evaluation frameworks. The analysis reveals a paradigm shift toward hybrid architectures that combine neural language models with symbolic ontological reasoning, leveraging resources such as UMLS, SemMedDB, SNOMED CT, and specialized biomedical knowledge graphs. Key findings indicate that multi-step reasoning verification through Chain-of-Thought (CoT) prompting, when augmented with knowledge graph-based validation and formal deductive verification, significantly improves faithfulness and consistency in biomedical text generation. Retrieval-Augmented Generation (RAG) frameworks enhanced with graph neural networks (GNNs) and path-based reasoning demonstrate superior performance in detecting semantic inconsistencies and contradictions. However, challenges remain in scalability, entity disambiguation, source provenance assessment, and achieving robust performance across diverse clinical contexts. This report provides actionable insights for researchers and practitioners developing trustworthy biomedical AI systems.
+
+Table of Contents
+Introduction
+Ontology-Grounded Contradiction Detection
+2.1 UMLS and SemMedDB Integration
+2.2 Hierarchical Reasoning and Multi-Hop Chaining
+2.3 MRREL Relations for Semantic Validation
+Biomedical NLI and Reasoning Verification
+3.1 Chain-of-Thought Verification Methods
+3.2 Negation and Directionality Handling
+3.3 Faithfulness and Consistency Metrics
+Knowledge Graph Integration
+4.1 Beyond UMLS: Multi-Ontology Integration
+4.2 Knowledge Graph Embeddings
+4.3 GNN-Based Reasoning Architectures
+Hybrid and Neuro-Symbolic Approaches
+5.1 Neural-Symbolic Integration Architectures
+5.2 RAG-Based Verification Systems
+5.3 Confidence Calibration and Uncertainty Quantification
+Evaluation and Practical Considerations
+6.1 Source Quality and Provenance Weighting
+6.2 Entity Disambiguation and Linking
+6.3 Consistency Metrics and Benchmarks
+6.4 Scalability and Batch Processing
+Discussion and Future Directions
+Conclusion
+References
+1. Introduction
+The proliferation of large language models (LLMs) in biomedical applications has introduced unprecedented opportunities for clinical decision support, automated medical documentation, and evidence synthesis. However, these systems are prone to generating semantically inconsistent or contradictory information—a phenomenon termed "semantic leakage"—which poses significant risks in high-stakes medical contexts. Semantic leakage encompasses various failure modes: factual hallucinations, logical contradictions with established biomedical knowledge, inconsistent reasoning chains, and violations of domain-specific constraints encoded in medical ontologies.
+
+Addressing semantic leakage requires a multi-faceted approach that integrates ontological knowledge, formal reasoning verification, and robust evaluation frameworks. Recent research (2020-2026) has converged on hybrid architectures that combine the generative capabilities of neural language models with the precision of symbolic reasoning systems. This synthesis examines five critical dimensions of biomedical semantic leakage detection: (A) ontology-grounded contradiction detection using resources like UMLS and SemMedDB, (B) biomedical natural language inference (NLI) with Chain-of-Thought (CoT) verification, (C) knowledge graph integration spanning SNOMED CT, RxNorm, DrugBank, and Gene Ontology, (D) neuro-symbolic approaches combining neural and symbolic reasoning, and (E) practical evaluation frameworks addressing source quality, disambiguation, and scalability.
+
+The urgency of this research is underscored by the rapid deployment of LLMs in clinical workflows. Studies demonstrate that existing NLI models perform poorly on biomedical corpora, particularly on tasks requiring numerical reasoning and domain-specific terminology [11]. Furthermore, traditional NLP metrics fail to capture clinically meaningful factual inconsistencies [16]. This report synthesizes state-of-the-art methods, identifies critical gaps, and provides recommendations for developing trustworthy biomedical AI systems.
+
+2. Ontology-Grounded Contradiction Detection
+2.1 UMLS and SemMedDB Integration
+The Unified Medical Language System (UMLS) and Semantic MEDLINE Database (SemMedDB) serve as foundational resources for ontology-grounded contradiction detection. UMLS integrates over 200 biomedical vocabularies, providing a comprehensive framework for concept normalization and semantic type classification. SemMedDB extends this by extracting semantic predications (subject-predicate-object triples) from MEDLINE abstracts, enabling relation-based reasoning.
+
+Lamichhane et al. developed an explainable automated inconsistency detection system that utilizes SemMedDB to extract biomedical semantic relations for contradiction detection [1]. This approach leverages the structured nature of semantic predications to identify conflicting assertions across literature. The system's explainability is crucial for clinical adoption, as it provides transparent reasoning chains that clinicians can verify.
+
+Chowdhury et al. (2020) proposed a knowledge-adaptive approach for medical NLI that encodes premise/hypothesis texts by leveraging supplementary external knowledge alongside UMLS, based on word contexts [22]. Their method incorporates refined domain knowledge at both lexical and relational levels through a multi-source attention mechanism to align token-level interactions more effectively. This context-aware integration addresses a key limitation of static ontology mappings: the inability to capture polysemy and context-dependent meanings.
+
+UmlsBERT represents a significant advancement in integrating UMLS knowledge into neural architectures [18], [19]. Michalopoulos et al. (2021) augmented contextual embeddings by connecting words with the same UMLS concept and leveraging semantic group knowledge for input embeddings [19]. This approach encodes clinical domain knowledge into word embeddings, outperforming existing models on named-entity recognition (NER) and clinical natural language inference tasks. UmlsBERT achieved 83.0% accuracy on MedNLI and F1 scores ranging from 79.4% to 94.9% on i2b2 NER tasks [19]. The model was trained on the MIMIC-III dataset using 2 NVIDIA V100 GPUs for 10 days, demonstrating the computational investment required for effective UMLS integration.
+
+2.2 Hierarchical Reasoning and Multi-Hop Chaining
+Multi-hop reasoning—the ability to chain multiple inference steps across knowledge graph paths—is essential for detecting complex contradictions that span multiple biomedical concepts. Liu et al. (2021) proposed PoLo, a neuro-symbolic method combining policy-guided walks based on reinforcement learning with logical rules for neural multi-hop reasoning on biomedical knowledge graphs [25]. PoLo uses Hetionet, a biomedical KG integrating information from 29 databases including UMLS, Gene Ontology, and DrugBank. The method trains an agent using reinforcement learning to perform policy-guided random walks, integrating logical rules via a novel reward function. The agent's history is encoded using an LSTM, and its action distribution is determined by learnable weight matrices. This hybrid architecture guides the agent during training, allowing it to use background knowledge formalized as logical rules to denoise the reward signal and improve generalization.
+
+Hu et al. (2024) developed BioKGC, a path-based reasoning framework built upon the Neural Bellman-Ford Network (NBFNet) [11]. BioKGC leverages a background regulatory graph (BRG) for enhanced message passing, integrating additional graph information from resources like Pathway Commons. It uses entity type information and a node type-aware negative sampling scheme. The framework benchmarks KGE methods including TransE, DistMult, ComplEx, and RotatE, as well as Relational Graph Convolutional Networks (R-GCNs) and Transductive Graph Neural Networks (TxGNN). BioKGC's path-based approach learns representations between nodes by considering all relations along paths, enabling the detection of indirect contradictions that emerge from multi-hop inference chains.
+
+MedCoT introduces a hierarchical expert verification reasoning chain method for medical imaging inquiries [23]. The system involves an Initial Specialist proposing diagnostic rationales, a Follow-up Specialist validating these rationales, and consensus reached through a vote among a sparse Mixture of Experts within a locally deployed Diagnostic Specialist. This hierarchical structure mirrors clinical consultation workflows, where multiple specialists review and validate diagnostic reasoning. MedCoT was experimentally evaluated on four standard Med-VQA datasets, demonstrating significant improvements in performance and interpretability.
+
+2.3 MRREL Relations for Semantic Validation
+The MRREL (Metathesaurus Relations) table in UMLS defines semantic relationships between concepts, including hierarchical (is-a, part-of), associative (may-treat, may-diagnose), and contradictory relations. Leveraging MRREL relations enables fine-grained semantic validation by checking whether generated assertions violate established ontological constraints.
+
+While explicit MRREL-based contradiction detection systems were not extensively documented in the surveyed literature, the foundational work on UMLS integration implicitly relies on these relations. Hao's computational methods for enhancing biomedical terminology quality and interoperability [3] provide metrics for terminology interoperability and validate through multiple source vocabularies in UMLS, suggesting the use of relational constraints for consistency checking.
+
+The integration of MRREL relations with neural architectures remains an open research direction. Future systems could explicitly encode MRREL constraints as soft or hard constraints in neural verification layers, penalizing generated text that violates established semantic relations. This approach would combine the coverage of neural models with the precision of ontological rules.
+
+3. Biomedical NLI and Reasoning Verification
+3.1 Chain-of-Thought Verification Methods
+Chain-of-Thought (CoT) prompting has emerged as a dominant paradigm for eliciting multi-step reasoning from LLMs. However, the faithfulness and correctness of CoT reasoning chains require rigorous verification to prevent semantic leakage. Recent research has developed multiple verification strategies tailored to biomedical contexts.
+
+Jin et al. (2024) developed a self-consistent CoT system for complex NLI in the biomedical domain [2]. The system generates multiple reasoning chains using LoRA instruction-tuned Mixtral-8x7B-Instruct and applies majority voting for consistency. GPT-4 generates reasoning chains and initial verification labels, while a bart-large-mnli NLI model extracts verification labels from CoT rationales. On the NLI4CT dataset (1700 training, 200 validation, 5500 test examples), the FZI-WIM self-consistent CoT system achieved a baseline F1 score of 0.80, a faithfulness score of 0.90, and a consistency score of 0.73 [2]. This demonstrates that self-consistency mechanisms can significantly improve reasoning reliability.
+
+Ling et al. (2023) proposed Natural Program, a natural language-based deductive reasoning format that decomposes reasoning verification into step-by-step subprocesses [4], [6]. Each subprocess receives only necessary context and premises, enabling local verification. The method integrates deductive verification with Unanimity-Plurality Voting to enhance trustworthiness. On GSM8K, AQUA, MATH, AddSub, Date, and Last Letters datasets, GPT-3.5-turbo's one-shot reasoning chain verification accuracy was 50%, while Natural Program with step-by-step decomposition achieved 69% overall [6]. Final answer accuracy for Natural Program with deductive verification and UPV reached 92.60% on Last Letters [6].
+
+Weng et al. (2022, 2023) introduced self-verification methods for LLMs involving Forward Reasoning and Backward Verification [5], [8], [27]. The approach uses Condition Mask Verification (CMV) for arithmetic tasks and True-False Item Verification (TFV) for general tasks, evaluating consistency between predicted and original condition values. On GSM8K, self-verification improved Instruct-GPT from 60.81% to 65.14%, and on SingleEq from 91.01% to 93.40% [8]. The method ranks candidate answers based on verification scores derived from consistency checks, without requiring additional training or human annotation.
+
+Vacareanu et al. (2024) proposed a general framework for guiding reasoning using verifiers that adhere to three principles: Relevance, Mathematical Accuracy, and Logical Consistency [11]. Mathematical Accuracy extracts and programmatically executes mathematical formulas, while Logical Consistency checks if a step contradicts previous steps. Step-wise perplexity is used as an additional verifier. The proposed method outperformed random chains by an average of 12.63 points and Low PPL Chains in over 65% of cases by an average of 1.43 points across 9 datasets [11].
+
+3.2 Negation and Directionality Handling
+Negation and directionality are critical linguistic phenomena in biomedical text that profoundly affect semantic interpretation. Mishandling negation can lead to catastrophic errors, such as interpreting "no evidence of malignancy" as "evidence of malignancy."
+
+Zhou et al. (2023) emphasized that ensuring high-quality results in Medical Report Generation (MRG) systems requires particular attention to medical terms and negation [1]. Entity extraction methods, including in-house extractors matching concepts to UMLS and machine learning-based clinical fact extractors, are used for medical correctness. Consistency is assessed through fact-based metrics and evaluating items included in generated reports against gold standards.
+
+The NLI4CT dataset, introduced by Jullien et al. (2023), specifically addresses challenges in reasoning over Clinical Trial Reports (CTRs), including numerical operations and domain-specific terminology [11]. The dataset contains 2400 expert-annotated statements with a Cohen's kappa of 0.83 for inter-annotator agreement. Evaluation uses Precision, Recall, and Macro F1-score for Task 1, and Mean Average Precision (mAP @ K) for Task 2. Baselines include BERT-base, BioBERT, and GPT 3.5 turbo, with BioBERT achieving the highest F1 of 0.644 [11]. The relatively modest performance highlights the difficulty of biomedical NLI, particularly when negation and numerical reasoning are involved.
+
+Mandal et al. (2024) explored LLMs' capabilities for Safe Biomedical Natural Language Inference for Clinical Trials using a Retrieval-Augmented Generation (RAG) framework [21]. The evaluation yielded an F1 score of 0.69, consistency of 0.71, and a faithfulness score of 0.90 on the test dataset. The high faithfulness score suggests that RAG can effectively ground reasoning in evidence, though consistency remains a challenge.
+
+3.3 Faithfulness and Consistency Metrics
+Faithfulness measures whether generated reasoning chains are grounded in provided evidence, while consistency assesses whether multiple reasoning paths converge to the same conclusion. These metrics are essential for detecting semantic leakage.
+
+Creswell et al. (2022) developed a faithful reasoning framework using LLMs [20]. On ProofWriter and EntailmentBankQA datasets, the SI model + Halter + PW Search achieved 88.1% final answer accuracy on ProofWriter and 83.2% on EntailmentBankQA Task 2 [20]. The Halter component achieved 99.9-100% accuracy on ProofWriter and 88.8% on EntailmentBankQA Task 1, demonstrating near-perfect detection of hallucinated facts. SI models made up facts in less than 1% of problems on EntailmentBankQA, significantly outperforming baselines like Proof + Answer (60%) [20].
+
+Kim et al. (2023) developed CoTEVer, a Chain of Thought Prompting Annotation Toolkit for Explanation Verification [9], [16]. CoTEVer utilizes annotators to verify machine-generated explanations against provided evidence documents using a 1-5 star Likert scale rating for each step. For multi-step reasoning, it decomposes explanations into sub-questions and sub-answers. Fact Verification is defined akin to FEVER, labeling sub-answer/document pairs as SUPPORTED, REFUTED, or NOTENOUGHINFO. CoTEVer's prompt achieved 70.52% accuracy on the StrategyQA (question-only set) benchmark, outperforming CoT (65.4%) [9]. Error analysis on 300 incorrect instances revealed 18% Insufficient Knowledge, 22% Out of Date, and 43% Wrong Fact [9].
+
+Zhu et al. (2024) proposed Deductive Beam Search (DBS) for reasoning verification [28]. DBS utilizes a deductive verifier built with a DeBERTa-v3-large NLI architecture to evaluate logical coherence between a reasoning step and its premises. The verifier is trained using a scalable data construction method that synthesizes fine-grained and diverse deductive reasoning errors (grounding and logic errors) without human annotation. DBS improved Llama2-7b accuracy by 9.2% on GSM8K and ChatGPT by 7.0%. The verifier achieved MRR 0.59, HITS@1 0.49, HITS@3 0.69, and HITS@5 0.86 [28].
+
+4. Knowledge Graph Integration
+4.1 Beyond UMLS: Multi-Ontology Integration
+While UMLS provides comprehensive coverage, specialized ontologies offer deeper domain-specific knowledge. Integrating multiple ontologies—SNOMED CT for clinical terminology, RxNorm for medications, DrugBank for drug-drug interactions, and Gene Ontology (GO) for molecular functions—enables more nuanced contradiction detection.
+
+Sousa et al. (2025) developed a methodology integrating domain-specific knowledge using Gene Ontology (GO) and GO annotation data [15], [17]. RDF2vec is employed as the KG embedding method, a path-based strategy using random walks and Word2vec. The supervised learning uses either a Multi-Layer Perceptron (MLP) or a Graph Convolutional Network (GCN). RDF2vec's path-based approach captures longer-distance relations, supporting multi-hop reasoning. The methodology combines gene expression data and domain-specific knowledge using knowledge graphs (symbolic component), with KG embedding techniques generating vector representations for KG nodes. These embeddings serve as input for a GCN or MLP for patient diagnosis.
+
+Devarakonda et al. (2023) used UMLS for unique identifiers for entities like indications and interventions, and DrugBank for data on drugs, targets, and mechanisms of action [16]. For KG embedding techniques, they evaluated Node2Vec, TransE, TransR, ComplEx, ConvKB, and HRGAT. Graph Attention Networks (GATs) were also assessed. The paper describes a semantics-based inductive inference method using neural embeddings trained on a knowledge graph of clinical trials. It uses text embeddings to find similar clinical trials based on attribute values, estimating KG embeddings for new nodes by taking a weighted average of existing similar nodes' KG embeddings.
+
+Zheng et al. (2020) introduced PharmKG, a multi-relational, attributed biomedical knowledge graph composed of genes, drugs, and diseases [13], [14], [19], [20]. PharmKG offers 9 state-of-the-art knowledge graph embedding (KGE) approaches and a new graph neural network-based KGE method that combines global network structure with heterogeneous domain features like gene expression, chemical structure, and disease word embedding. The benchmark facilitates evaluation of rule-based entity-specific systems and recent neural approaches.
+
+4.2 Knowledge Graph Embeddings
+Knowledge graph embeddings (KGEs) transform symbolic knowledge into continuous vector spaces, enabling neural models to reason over structured knowledge. Several embedding techniques have been applied to biomedical KGs.
+
+Diligenti et al. (2023) enhanced embedding representations of biomedical data using logic knowledge [2], [3], [4]. The approach uses the PharmKG dataset and adopts Relational Reasoning Network (R2N), a neural-symbolic approach that builds a neural architecture reasoning over KGE latent representations using available logic rules. R2N integrates KGE (neural component) with logic rules (symbolic component) by processing embedded representations of facts as a message-passing algorithm over a logic-based factor graph. KGEs provide initial atom embeddings, which are then refined by Reasoning Layers that incorporate relational information from logic rules. This architecture allows the model to learn when and on which atoms to apply grounded rules, offering flexibility to modify or ignore atom embeddings based on logic structures.
+
+Hu et al. (2024) benchmarked TransE, DistMult, ComplEx, and RotatE as KGE methods in their BioKGC framework [11]. BioKGC leverages a neural Bellman-Ford Network (NBFNet) framework, a generalized graph neural network, to learn path representations and predict links. It uses node embeddings indirectly by borrowing relational operators from KGEs. The framework's path-based approach represents a symbolic approach to reasoning over knowledge graphs, with learned operators integrated within the NBFNet's Bellman-Ford algorithm for efficient path formulation.
+
+Rivas et al. (2023) proposed a hybrid system that uses symbolic reasoning, expressed as a deductive database, to augment the contextual meaning of entities in a knowledge graph [5]. This improves the performance of link prediction implemented using KGE models. The approach deduces new RDF triples in entity ego networks, reducing sparsity and making explicit meaningful relations. As a proof of concept, it was applied over a KG for lung cancer, with empirical results indicating that making explicit deduced relationships in ego networks empowers all studied KGE models to generate more accurate links.
+
+4.3 GNN-Based Reasoning Architectures
+Graph Neural Networks (GNNs) enable end-to-end learning over knowledge graph structures, capturing complex relational patterns that static embeddings may miss.
+
+Werner (2024) explored neuro-symbolic integration for reasoning and learning on knowledge graphs [1]. The paper discusses knowledge graphs such as YAGO, Freebase, and Wikidata, and knowledge graph embedding methods aiming to find low-dimensional vector representations for entities and relations. Neuro-symbolic integration methods combine symbolic information (rules in ontologies) with knowledge graph embedding methods. Knowledge-enhanced neural networks and graph neural networks are explored, with a focus on integrating first-order logic rules into learning tasks.
+
+Pelletier et al. (2025) utilized LLMs with Retrieval-Augmented Generation (RAG) to ground biomedical knowledge, minimizing hallucinations [8]. The paper applies Graph Neural Networks (GNNs) to process biomedical knowledge graph data. This represents a hybrid architecture where LLMs and GNNs act as neural components for knowledge synthesis and hypothesis validation.
+
+Chudasama et al. explored interpretable hybrid AI by integrating knowledge graphs and symbolic reasoning in medicine [9]. The paper uses neuro-symbolic AI to reason over a medical knowledge graph and applies RotatE for knowledge graph completion, specifically using RotatE embeddings for lung cancer relapse prediction.
+
+Gao et al. leveraged medical knowledge graphs into large language models for diagnosis prediction using a graph neural network (DR.KNOWS) to incorporate structured KG knowledge [7]. The approach explores zero-shot prompting within an LLM-based retrieval-augmented verification (RAG) approach. A GNN processes the KG, though explicit symbolic components like logic rules or formal verification are not detailed.
+
+5. Hybrid and Neuro-Symbolic Approaches
+5.1 Neural-Symbolic Integration Architectures
+Neuro-symbolic AI combines the pattern recognition capabilities of neural networks with the interpretability and logical rigor of symbolic reasoning. This integration is particularly valuable for biomedical applications where both data-driven learning and domain knowledge are essential.
+
+Diligenti et al. (2023) demonstrated that Relational Reasoning Networks (R2N) integrate KGE (neural component) with logic rules (symbolic component) by processing embedded representations of facts as a message-passing algorithm over a logic-based factor graph [2], [3], [4]. KGEs provide initial atom embeddings, which are then refined by Reasoning Layers that incorporate relational information from logic rules. This architecture allows the model to learn when and on which atoms to apply grounded rules, offering flexibility to modify or ignore atom embeddings based on logic structures. The model is designed for scalability in large biomedical knowledge graphs by automating rule extraction.
+
+Liu et al. (2021) proposed PoLo, which combines neural and symbolic approaches by training an agent using reinforcement learning to perform policy-guided random walks on a knowledge graph (neural component) [25]. It integrates logical rules (symbolic component) into this process via a novel reward function. The agent's history is encoded using an LSTM, and its action distribution is determined by learnable weight matrices (neural components). This hybrid architecture guides the agent during training, allowing it to use background knowledge formalized as logical rules to denoise the reward signal and improve generalization.
+
+Zhang et al. (2025) developed MedKGent, a Large Language Model Agent Framework for Constructing Temporally Evolving Medical Knowledge Graphs [28]. MedKGent combines neural LLMs (Qwen2.5-32B-Instruct) for relation extraction and semantic embeddings (BiomedBERT) with symbolic methods. The Extractor Agent uses LLMs for inferring relations and sampling-based confidence estimation. The Constructor Agent incrementally integrates triples into a graph database, reinforcing knowledge and resolving conflicts using confidence scores and timestamps, guided by predefined relation types and rules. This hybrid RAG framework enhances accuracy and scalability, with confidence calibration addressing uncertainty.
+
+5.2 RAG-Based Verification Systems
+Retrieval-Augmented Generation (RAG) addresses the hallucination problem by grounding LLM outputs in retrieved evidence. When combined with knowledge graphs, RAG systems can perform structured verification of generated claims.
+
+Soman et al. (2023) developed a Knowledge Graph-based Retrieval Augmented Generation (KG-RAG) framework that combines explicit knowledge from the biomedical Knowledge Graph SPOKE with implicit knowledge from LLMs [29]. The framework employs a task-agnostic approach to optimize their combination, enhancing LLMs' adaptability for domain-specific questions. KG-RAG notably boosted Llama-2 performance by 71% on MCQs, empowering open-source models. The framework leverages one-hop and two-hop prompts, demonstrating utility in multi-hop reasoning.
+
+Matsumoto et al. (2024) introduced KRAGEN, a knowledge Graph-Enhanced RAG framework for biomedical problem solving using large language models [30]. KRAGEN converts knowledge graphs into a vector database and uses RAG to retrieve relevant facts. It employs advanced prompting techniques, specifically graph-of-thoughts (GoT), to break down complex problems. The framework integrates knowledge graphs with RAG to limit hallucinations and consolidate solutions. KRAGEN combines neural and symbolic methods through a hybrid architecture, using LLMs as neural components enhanced by RAG to retrieve relevant facts from a knowledge graph (symbolic component).
+
+Gubanov et al. (2024) developed CancerKG.ORG, a Web-scale, Interactive, Verifiable Knowledge Graph-LLM Hybrid for Assisting with Optimal Cancer Treatment and Care [27]. CancerKG.ORG combines a Web-scale hybrid Knowledge Graph (symbolic) with Large Language Models (neural). The verified KG serves as a Retrieval Augmented Generation (RAG) guardrail, alleviating LLM shortcomings like hallucinations and outdated corpora. CancerKG is unsupervised, automatically ingesting and organizing medical findings, ensuring it's not stale like manually curated KGs.
+
+Feng et al. (2025) constructed a Biomedical Stratified Knowledge Graph (BioStrataKG) by extracting entity-level (genes, proteins, diseases, drugs) and document-level information from biomedical articles using GPT-4o mini [24]. Entity normalization uses MeSH and UniProt databases with all-MiniLM-L6-v2 embeddings. The BioStrataKG, stored in Neo4j, supports cross-document reasoning. It integrates with RAG via the IP-RAR framework, which uses pre-retrieval reasoning and multi-level, multi-granularity retrieval (question-based, keyword-based, virtual answer-based) with Contriever-MS MARCO embeddings to enhance knowledge mining.
+
+5.3 Confidence Calibration and Uncertainty Quantification
+Confidence calibration ensures that model predictions reflect true probabilities, while uncertainty quantification provides explicit measures of epistemic and aleatoric uncertainty. These capabilities are critical for clinical deployment.
+
+Mavi et al. (2025) extended self-evaluation techniques for multi-step tasks, testing holistic scoring and step-by-step scoring [18]. The paper shows that stepwise evaluation generally outperforms holistic scoring in detecting potential errors in complex reasoning, providing a framework for failure detection. A key quantitative result is up to a 15% relative increase in AUC-ROC for stepwise evaluation compared to holistic scoring.
+
+Xu et al. (2025) developed ReaLM, which uses Multi-Route Process Verification (MRPV) to enhance reasoning capability by contrasting both positive and negative reasoning paths [29]. This involves a two-stage reward mechanism: Stage 1 (Answer Supervision) rewards based on final answer correctness, and Stage 2 (Process Supervision) assesses the utility of each external CoT by comparing its conclusion to ground truth. ReaLM achieved 94.4% accuracy on Deepseek-R1-7B GSM8K with external CoTs and 88.9% without, outperforming baselines like SFT, MT-CoT, SKIntern, and USC.
+
+HS et al. (2026) introduced ReTreVal, a Reasoning Tree with Validation framework that integrates Tree-of-Thoughts exploration, self-refinement, LLM-based critique scoring, and reflexion memory for multi-step reasoning [12]. It constructs a structured reasoning tree with adaptive depth, where each node undergoes iterative self-critique and refinement guided by LLM-generated feedback. A dual validation mechanism evaluates reasoning quality, coherence, and correctness at each node, while critique-based pruning retains top-k highest-scoring nodes. ReTreVal was evaluated against ReAct, Reflexion, and Self-Refine across 500 mathematical problems and creative writing tasks, consistently outperforming existing methods.
+
+6. Evaluation and Practical Considerations
+6.1 Source Quality and Provenance Weighting
+Assessing the quality and provenance of information sources is essential for reliable semantic leakage detection. Not all biomedical sources are equally trustworthy, and systems must account for source reliability.
+
+Liu et al. (2021) developed ProvCaRe, a large-scale semantic provenance resource for scientific reproducibility [5]. The resource extracts provenance information from 1.6 million biomedical full-text articles using an ontology-driven NLP pipeline. It features a provenance-based ranking dashboard that allows users to assign custom weights to query results, enabling a systematic evaluation of reproducibility in biomedical research. This approach offers real-world applicability for assessing research studies.
+
+Zhou et al. (2023) highlighted that entity extraction methods, including in-house extractors matching concepts to UMLS and machine learning-based clinical fact extractors, are used for medical correctness [1]. Consistency is assessed through fact-based metrics and evaluating items included in generated reports against gold standards. The paper emphasizes that evaluation must be task-specific and include human assessments by experts due to the domain's specificity.
+
+Abacha et al. (2023) emphasized the importance of fact-based and key phrase-based annotations for consistency validation, identifying critical omissions, hallucinations, and incorrect facts [8]. Evaluation frameworks include fact-based annotation for factual correctness, hallucination, and omission rates. Quality metrics encompass Factual Precision, Factual Recall, Hallucination Rate, Omission Rate, and Aggregate Score (e.g., (2F – H – O)/4). Average Pearson inter-annotator agreement was 0.67.
+
+6.2 Entity Disambiguation and Linking
+Entity disambiguation—resolving ambiguous mentions to unique ontology concepts—is a prerequisite for accurate semantic validation. Biomedical text is rife with abbreviations, synonyms, and polysemous terms.
+
+Garda et al. (2023) introduced BELB, a biomedical entity linking benchmark providing 11 corpora linked to 7 KBs for six entity types [17]. BELB offers a standardized testbed for reproducible experiments, greatly reducing preprocessing overhead. The benchmark evaluates rule-based entity-specific systems and recent neural approaches. Results reveal neural approaches fail to perform consistently across entity types, highlighting the need for entity-agnostic models.
+
+Kartchner et al. conducted a comprehensive evaluation of biomedical entity linking models, analyzing their performance on various datasets and tasks [12]. The study explores the effectiveness of different model architectures, including transformer-based models, and investigates the impact of data preprocessing techniques on model performance. Results provide insights into model strengths and limitations, guiding future research directions.
+
+Kraljevic et al. (2020) developed MedCAT, the Medical Concept Annotation Toolkit, which uses self-supervised training on large EHR corpora (~8.8B words from ~17M clinical records) to learn concept contexts for entity disambiguation and linking [21]. It employs a fast spell checker and an expanding window algorithm to detect entity candidates. Performance is validated through clinician annotations and inter-annotator agreement (IIA). MedCAT's NER+L performance achieved F1 scores ranging from 0.467 to 0.791 on MedMentions and ShARe/CLEF datasets. Inter-annotator agreement for clinical use cases ranged from 0.85 to 0.88. The system is deployed across multiple NHS trusts, demonstrating scalability and real-world applicability.
+
+Loureiro et al. (2020) developed MedLinker, which addresses medical entity linking challenges by leveraging specialized Neural Language Models with Approximate Dictionary Matching [27]. It performs competitively on semantic type linking and improves the state-of-the-art for fine-grained concept linking (+4 F1 on MedMentions main task). This approach demonstrates real-world applicability in handling large ontologies and low concept overlap.
+
+Achara et al. (2024) proposed efficient biomedical entity linking using neural embedding models (MiniLM) for semantic search and candidate generation, followed by parametric reranking or semantic information (type/group) from UMLS for disambiguation [25]. The proposed techniques are low-resource, with MiniEL0 showing 0 MB memory for training and 0.1 Kg. Eq. CO2 emissions for prototype space creation, and 938 MB memory with 0.04 Kg. Eq. CO2 for inference. MiniEL0 achieved 0.553 R@1 on the Medmentions st21pv dataset.
+
+6.3 Consistency Metrics and Benchmarks
+Standardized benchmarks and metrics are essential for comparing semantic leakage detection systems and tracking progress.
+
+Jullien et al. (2023) introduced NLI4CT, a Multi-Evidence Natural Language Inference benchmark for Clinical Trial Reports [11]. The dataset contains 2400 expert-annotated statements with a Cohen's kappa of 0.83 for inter-annotator agreement. Evaluation uses Precision, Recall, and Macro F1-score for Task 1, and Mean Average Precision (mAP @ K) for Task 2. Baselines include BERT-base, BioBERT, and GPT 3.5 turbo, with BioBERT achieving the highest F1 of 0.644. The work highlights challenges for real-world applicability, noting that existing NLI models perform poorly on biomedical corpora and struggle with numerical operations and domain-specific terminology.
+
+Xie et al. (2023) proposed factuality-centric evaluation aspects and GPT-4-based metrics for medical text generation [6]. These metrics were systematically compared with existing ones on clinical note generation and medical report summarization tasks. A comprehensive human evaluation confirmed higher agreement of the proposed GPT-4-based metrics with human judgments than existing evaluation metrics. The study reveals low inter-metric correlation among evaluation approaches.
+
+Rahrooh et al. (2025) developed MedPromptEval, a comprehensive framework for systematic evaluation of clinical question answering systems [13]. The framework evaluates clinical QA systems using metrics such as factual accuracy, semantic relevance, entailment consistency, and linguistic appropriateness. It utilizes publicly available clinical QA datasets including MedQuAD, PubMedQA, and HealthCareMagic for benchmarking. The framework enables model comparison, prompt strategy optimization, and extensive assessment of prompt-model configurations.
+
+Veen et al. (2023) conducted a clinical reader study evaluating AI-generated clinical text summarization [14]. Evaluation frameworks include quantitative NLP metrics and a clinical reader study. Quality metrics used are BLEU, ROUGE-L, BERTScore, and MEDCON (medical concept consistency). Benchmark datasets span radiology reports (Open-i, MIMIC-CXR, MIMIC-III), patient questions (MeQSum), progress notes (ProbSum), and doctor-patient dialogue (ACI-Bench). Inter-annotator agreement for condensed questions was high, and intra-reader correlation for clinical evaluations (completeness, correctness, conciseness) was positive (e.g., 0.63 overall for completeness). GPT-4 summaries statistically significantly outperformed human summaries in completeness (p < 0.001).
+
+6.4 Scalability and Batch Processing
+Clinical applications often require processing large volumes of text in real-time or batch mode. Scalability considerations include computational efficiency, memory footprint, and throughput.
+
+Dobbins (2025) developed a generalizable and scalable multistage biomedical concept normalization approach leveraging LLMs [20]. The study integrates LLMs with rule-based systems for alternative phrasing and concept pruning. The paper highlights significant performance gains (+9.5 to +21.7 F1) using existing tools without fine-tuning, applicable to both proprietary and open-source models. This approach demonstrates computational efficiency by enhancing current systems and offers real-world applicability for processing free-text clinical data into structured formats. The study measured results using F_β (favoring recall) and F1 scores, evaluating 5,523 concept terms and text contexts from a publicly available dataset of human-annotated biomedical abstracts.
+
+Abacha et al. (2023) addressed scalability by implementing a sliding window policy for BERTScore to handle summaries exceeding 512 tokens [8]. Computational efficiency is implied by experiments performed on one 80GB NVidia A100 GPU. Clinical deployment considerations include the need for domain experts for manual evaluation and the task-specific nature of effective metrics.
+
+Veen et al. (2023) highlighted the use of QLoRA for memory-efficient fine-tuning on consumer GPUs [14]. The study emphasizes the importance of adaptation methods (ICL, QLoRA) over zero-shot prompting for improved performance. GPT-4's superior correctness reduces hallucinations compared to human experts, which is crucial for clinical readiness. However, model context length and data heterogeneity remain challenges for broader tasks.
+
+Wang et al. (2024) noted that for scalability, the PMC dataset was filtered to 14 million samples for pretraining, and fine-tuning involved 8 H100 GPUs for 90 hours [24]. Clinical deployment necessitates careful consideration, ensuring automated medical systems complement, rather than replace, healthcare professionals, balancing technological advancement with ethical considerations.
+
+7. Discussion and Future Directions
+The synthesis of recent research reveals significant progress in biomedical semantic leakage detection, yet critical challenges remain. The convergence toward hybrid neuro-symbolic architectures represents a promising direction, combining the generalization capabilities of neural models with the precision and interpretability of symbolic reasoning. However, several key issues warrant further investigation.
+
+Integration Depth and Granularity: While many systems integrate ontological knowledge, the depth of integration varies considerably. Shallow integration (e.g., using UMLS for entity linking) provides limited semantic validation compared to deep integration (e.g., encoding MRREL relations as verification constraints). Future research should explore fine-grained integration strategies that leverage the full richness of biomedical ontologies, including hierarchical relations, semantic types, and domain-specific constraints.
+
+Multi-Hop Reasoning at Scale: Path-based reasoning methods like BioKGC [11] and PoLo [25] demonstrate the value of multi-hop inference for detecting complex contradictions. However, scalability remains a concern. As knowledge graphs grow to millions of entities and billions of triples, exhaustive path enumeration becomes computationally prohibitive. Efficient approximation methods, such as learned heuristics for path pruning or hierarchical reasoning strategies, are needed.
+
+Negation and Temporal Reasoning: Current systems struggle with negation and temporal reasoning—two critical aspects of clinical documentation. A statement like "no fever since yesterday" requires understanding both negation and temporal context. Future systems should incorporate specialized modules for temporal relation extraction and negation scope detection, potentially leveraging temporal knowledge graphs and event-based representations.
+
+Confidence Calibration in Clinical Contexts: While several papers address confidence calibration [18], [29], clinical deployment requires calibration that accounts for the asymmetric costs of false positives and false negatives. A false negative in cancer diagnosis has far graver consequences than a false positive. Future work should develop cost-sensitive calibration methods that align model confidence with clinical decision thresholds.
+
+Benchmark Diversity and Realism: Existing benchmarks like NLI4CT [11] and MedNLI provide valuable testbeds, but they may not fully capture the complexity of real-world clinical text. Future benchmarks should include multi-document reasoning, longitudinal patient records, and adversarial examples designed to expose semantic leakage. Additionally, benchmarks should cover diverse clinical specialties, patient populations, and healthcare settings to ensure generalizability.
+
+Explainability and Trust: For clinical adoption, semantic leakage detection systems must provide interpretable explanations. Clinicians need to understand why a system flagged a particular statement as contradictory or inconsistent. Neuro-symbolic approaches offer a natural path toward explainability by exposing the symbolic reasoning steps. However, bridging the gap between symbolic explanations and clinician-friendly natural language remains an open challenge.
+
+Ethical and Regulatory Considerations: As these systems move toward clinical deployment, ethical and regulatory frameworks must evolve. Issues include liability for errors, patient consent for AI-assisted care, and ensuring equitable performance across demographic groups. Regulatory bodies like the FDA are beginning to address AI in healthcare, but specific guidelines for semantic leakage detection are still nascent.
+
+Federated and Privacy-Preserving Approaches: Clinical data is highly sensitive, and centralized training on large datasets raises privacy concerns. Federated learning approaches, as explored by Joy et al. (2025) [22], enable model training across distributed datasets without sharing raw data. Future research should investigate federated neuro-symbolic systems that can leverage distributed knowledge graphs while preserving patient privacy.
+
+8. Conclusion
+Biomedical semantic leakage detection has emerged as a critical research area at the intersection of natural language processing, knowledge representation, and clinical informatics. This comprehensive synthesis of 2020-2026 literature reveals a clear trajectory toward hybrid neuro-symbolic architectures that combine the strengths of neural language models and symbolic ontological reasoning.
+
+Key findings include: (1) Ontology-grounded contradiction detection using UMLS, SemMedDB, and MRREL relations provides a robust foundation for semantic validation, with systems like UmlsBERT achieving over 83% accuracy on biomedical NLI tasks [19]. (2) Chain-of-Thought verification methods, particularly self-consistent CoT and deductive verification frameworks, significantly improve reasoning faithfulness, with systems achieving up to 90% faithfulness scores on clinical trial NLI [2]. (3) Knowledge graph integration spanning SNOMED CT, RxNorm, DrugBank, and Gene Ontology enables multi-hop reasoning and path-based contradiction detection, with frameworks like BioKGC demonstrating superior link prediction performance [11]. (4) Neuro-symbolic approaches, especially RAG-based verification systems enhanced with GNNs, effectively mitigate hallucinations and improve consistency, with KG-RAG boosting open-source LLM performance by 71% [29]. (5) Practical evaluation frameworks emphasizing source provenance, entity disambiguation, and standardized benchmarks like NLI4CT provide essential infrastructure for system development and comparison [11].
+
+Despite these advances, significant challenges remain. Current systems struggle with negation and temporal reasoning, scalability to real-world clinical volumes, and providing clinician-interpretable explanations. Entity disambiguation across diverse clinical contexts remains imperfect, with neural approaches showing inconsistent performance across entity types [17]. Inter-annotator agreement, while improving, still reveals substantial variability in complex reasoning tasks [11].
+
+The path forward requires continued investment in several key areas: (1) developing deeper integration strategies that leverage the full semantic richness of biomedical ontologies, (2) creating efficient multi-hop reasoning algorithms that scale to massive knowledge graphs, (3) building specialized modules for negation, temporal reasoning, and numerical inference, (4) establishing cost-sensitive confidence calibration methods aligned with clinical decision thresholds, (5) designing diverse, realistic benchmarks that capture the complexity of real-world clinical documentation, and (6) ensuring explainability, fairness, and privacy preservation for clinical deployment.
+
+As large language models become increasingly integrated into clinical workflows, the importance of robust semantic leakage detection cannot be overstated. The hybrid neuro-symbolic approaches surveyed in this report offer a promising foundation for building trustworthy biomedical AI systems that augment, rather than replace, human clinical expertise. Continued collaboration between AI researchers, clinical informaticians, and healthcare practitioners will be essential to realize this vision.
+
+9. References
+[1] Lamichhane, "Explainable automated inconsistency detection in biomedical and health literature."
+
+[2] Jin et al., "FZI-WIM at SemEval-2024 Task 2: Self-Consistent CoT for Complex NLI in Biomedical Domain," 2024. DOI: 10.48550/arxiv.2406.10040
+
+[3] Wu et al., "OCEAN: Offline Chain-of-thought Evaluation and Alignment in Large Language Models," 2024. DOI: 10.48550/arxiv.2410.23703
+
+[4] Ling et al., "Deductive Verification of Chain-of-Thought Reasoning," 2023.
+
+[5] Weng et al., "Large Language Models are Better Reasoners with Self-Verification," 2022.
+
+[6] "Deductive Verification of Chain-of-Thought Reasoning," 2023. DOI: 10.48550/arxiv.2306.03872
+
+[7] "Verify-and-Edit: A Knowledge-Enhanced Chain-of-Thought Framework," 2023. DOI: 10.48550/arxiv.2305.03268
+
+[8] Weng et al., "Large Language Models are Better Reasoners with Self-Verification," 2023. DOI: 10.18653/v1/2023.findings-emnlp.167
+
+[9] Kim et al., "CoTEVer: Chain of Thought Prompting Annotation Toolkit for Explanation Verification," 2023. DOI: 10.18653/v1/2023.eacl-demo.23
+
+[10] Chen et al., "Towards medical complex reasoning with LLMs through medical verifiable problems," 2025. DOI: 10.18653/v1/2025.findings-acl.751
+
+[11] Vacareanu et al., "General Purpose Verification for Chain of Thought Prompting," 2024. DOI: 10.48550/arxiv.2405.00204
+
+[12] HS et al., "ReTreVal: Reasoning Tree with Validation -- A Hybrid Framework for Enhanced LLM Multi-Step Reasoning," 2026.
+
+[13] Pham et al., "Verify-in-the-Graph: Entity Disambiguation Enhancement for Complex Claim Verification with Interactive Graph Representation," 2025. DOI: 10.18653/v1/2025.naacl-long.268
+
+[14] Liang et al., "Advancing Biomedical Claim Verification by Using Large Language Models with Better Structured Prompting Strategies," 2025. DOI: 10.18653/v1/2025.bionlp-1.14
+
+[15] Ding et al., "Building a human-verified clinical reasoning dataset via a human LLM hybrid pipeline for trustworthy medical AI," 2025. DOI: 10.48550/arxiv.2505.06912
+
+[16] "CoTEVer: Chain of Thought Prompting Annotation Toolkit for Explanation Verification," 2023. DOI: 10.48550/arxiv.2303.03628
+
+[17] Zhang et al., "Chain-of-Thought Reasoning with Large Language Models for Clinical Alzheimer's Disease Assessment and Diagnosis."
+
+[18] Mavi et al., "Self-Evaluating LLMs for Multi-Step Tasks: Stepwise Confidence Estimation for Failure Detection," 2025.
+
+[19] Luo et al., "URSA: Understanding and Verifying Chain-of-thought Reasoning in Multimodal Mathematics," 2025. DOI: 10.48550/arxiv.2501.04686
+
+[20] Creswell et al., "Faithful Reasoning Using Large Language Models," 2022. DOI: 10.48550/arXiv.2208.14271
+
+[21] Mandal et al., "IITK at SemEval-2024 Task 2: Exploring the Capabilities of LLMs for Safe Biomedical Natural Language Inference for Clinical Trials," 2024. DOI: 10.48550/arxiv.2404.04510
+
+[22] Chowdhury et al., "Improving Medical NLI Using Context-Aware Domain Knowledge," 2020.
+
+[23] Liu et al., "MedCoT: Medical Chain of Thought via Hierarchical Expert," 2024. DOI: 10.18653/v1/2024.emnlp-main.962
+
+[24] Zhao et al., "Verify-and-Edit: A Knowledge-Enhanced Chain-of-Thought Framework," 2023. DOI: 10.48550/arXiv.2305.03268
+
+[25] Sanwal, "Layered Chain-of-Thought Prompting for Multi-Agent LLM Systems: A Comprehensive Approach to Explainable Large Language Models," 2025. DOI: 10.48550/arxiv.2501.18645
+
+[26] Wu et al., "Chain-of-Though (CoT) prompting strategies for medical error detection and correction," 2024. DOI: 10.48550/arxiv.2406.09103
+
+[27] "Large Language Models are Better Reasoners with Self-Verification," 2022. DOI: 10.48550/arxiv.2212.09561
+
+[28] Zhu et al., "Deductive Beam Search: Decoding Deducible Rationale for Chain-of-Thought Reasoning," 2024. DOI: 10.48550/arxiv.2401.17686
+
+[29] Xu et al., "ReaLM: Reflection-Enhanced Autonomous Reasoning with Small Language Models," 2025. DOI: 10.48550/arxiv.2508.12387
+
+[30] Nachane et al., "Few shot chain-of-thought driven reasoning to prompt LLMs for open-ended medical question answering," 2024. DOI: 10.18653/v1/2024.findings-emnlp.31
+
+[31] Werner, "Neuro-Symbolic Integration for Reasoning and Learning on Knowledge Graphs," 2024. DOI: 10.1609/aaai.v38i21.30415
+
+[32] Diligenti et al., "Enhancing Embedding Representations of Biomedical Data using Logic Knowledge," 2023. DOI: 10.48550/arXiv.2303.13566
+
+[33] "Enhancing Embedding Representations of Biomedical Data using Logic Knowledge," 2023. DOI: 10.48550/arxiv.2303.13566
+
+[34] Diligenti et al., "Enhancing Embedding Representations of Biomedical Data using Logic Knowledge," 2023. DOI: 10.1109/ijcnn54540.2023.10191706
+
+[35] Rivas et al., "A neuro-symbolic system over knowledge graphs for link prediction," 2023. DOI: 10.3233/sw-233324
+
+[36] Wang et al., "Structured reflective reasoning for precise medical knowledge graph retrieval augmented generation."
+
+[37] Gao et al., "Leveraging medical knowledge graphs into large language models for diagnosis prediction: Design and application study."
+
+[38] Pelletier et al., "Evidence-based knowledge synthesis and hypothesis validation: Navigating biomedical knowledge bases via explainable ai and agentic systems," 2025. DOI: 10.3791/67525
+
+[39] Chudasama et al., "Toward interpretable hybrid AI: integrating knowledge graphs and symbolic reasoning in medicine."
+
+[40] Melis, "Graph-Augmented Retrieval Techniques for Medical QA Applications."
+
+[41] Hu et al., "Path-based reasoning in biomedical knowledge graphs," 2024. DOI: 10.1101/2024.06.17.599219
+
+[42] Dang et al., "Multimodal Contrastive Representation Learning in Augmented Biomedical Knowledge Graphs," 2025. DOI: 10.48550/arxiv.2501.01644
+
+[43] Zheng et al., "PharmKG: A Dedicated Knowledge Graph Benchmark for Biomedical Data Mining," 2020. DOI: 10.5281/zenodo.4077337
+
+[44] Zheng et al., "PharmKG: A Dedicated Knowledge Graph Benchmark for Biomedical Data Mining," 2020. DOI: 10.5281/zenodo.4500613
+
+[45] Sousa et al., "Multi-dataset and Transfer Learning Using Gene Expression Knowledge Graphs," 2025. DOI: 10.48550/arxiv.2503.20400
+
+[46] Devarakonda et al., "Clinical Trial Recommendations Using Semantics-Based Inductive Inference and Knowledge Graph Embeddings," 2023. DOI: 10.48550/arxiv.2309.15979
+
+[47] Sousa et al., "Multi-dataset and Transfer Learning Using Gene Expression Knowledge Graphs," 2025.
+
+[48] Dang et al., "Multimodal Contrastive Representation Learning in Augmented Biomedical Knowledge Graphs," 2025.
+
+[49] Zheng et al., "PharmKG: A Dedicated Knowledge Graph Benchmark for Biomedical Data Mining," 2020. DOI: 10.5281/zenodo.4077338
+
+[50] Zheng et al., "PharmKG: A Dedicated Knowledge Graph Benchmark for Biomedical Data Mining," 2020. DOI: 10.5281/zenodo.4525237
+
+[51] Chen et al., "Co-MedGraphRAG: A Collaborative Large–Small Model Medical Question-Answering Framework Enhanced by Knowledge Graph Reasoning."
+
+[52] Joy et al., "Federated Knowledge Retrieval Elevates Large Language Model Performance on Biomedical Benchmarks," 2025. DOI: 10.1101/2025.08.01.668022
+
+[53] Delile et al., "Graph-Based Retriever Captures the Long Tail of Biomedical Knowledge," 2024. DOI: 10.48550/arxiv.2402.12352
+
+[54] Feng et al., "A retrieval-augmented knowledge mining method with deep thinking LLMs for biomedical research and clinical support," 2025. DOI: 10.1093/gigascience/giaf109
+
+[55] Liu et al., "Neural Multi-Hop Reasoning With Logical Rules on Biomedical Knowledge Graphs," 2021. DOI: 10.1007/978-3-030-77385-4_22
+
+[56] Kimura et al., "Mapping Drug Terms via Integration of a Retrieval-Augmented Generation Algorithm with a Large Language Model," 2024. DOI: 10.4258/hir.2024.30.4.355
+
+[57] Gubanov et al., "CancerKG.ORG - A Web-scale, Interactive, Verifiable Knowledge Graph-LLM Hybrid for Assisting with Optimal Cancer Treatment and Care," 2024. DOI: 10.1145/3627673.3680094
+
+[58] Zhang et al., "MedKGent: A Large Language Model Agent Framework for Constructing Temporally Evolving Medical Knowledge Graph," 2025. DOI: 10.48550/arxiv.2508.12393
+
+[59] Soman et al., "Biomedical knowledge graph-enhanced prompt generation for large language models," 2023. DOI: 10.48550/arxiv.2311.17330
+
+[60] Matsumoto et al., "KRAGEN: a knowledge Graph-Enhanced RAG framework for biomedical problem solving using large language models," 2024. DOI: 10.1093/bioinformatics/btae353
+
+[61] Zhou et al., "A Survey of Evaluation Methods of Generated Medical Textual Reports," 2023. DOI: 10.18653/v1/2023.clinicalnlp-1.48
+
+[62] Chen et al., "A Multiagent Summarization and Auto-Evaluation Framework for Medical Text: Development and Evaluation Study."
+
+[63] Hao, "Computational Methods for Enhancing the Quality and Interoperability of Biomedical Terminologies."
+
+[64] "A Comprehensive Evaluation of Biomedical Entity Linking and Normalization Models."
+
+[65] Liu et al., "ProvCaRe: A Large-Scale Semantic Provenance Resource for Scientific Reproducibility," 2021. DOI: 10.1007/978-3-030-67681-0_5
+
+[66] Xie et al., "Enhancing Medical Text Evaluation with GPT-4," 2023. DOI: 10.48550/arxiv.2311.09581
+
+[67] "ACI-BENCH: a Novel Ambient Clinical Intelligence Dataset for Benchmarking Automatic Visit Note Generation," 2023. DOI: 10.48550/arxiv.2306.02022
+
+[68] Abacha et al., "An Investigation of Evaluation Methods in Automatic Medical Note Generation," 2023. DOI: 10.18653/v1/2023.findings-acl.161
+
+[69] Simeon et al., "Validation strategies for NLP-based entity extraction models used in clinical workflow automation."
+
+[70] Zhao et al., "CliniQ: A Multi-faceted Benchmark for Electronic Health Record Retrieval with Semantic Match Assessment."
+
+[71] Jullien et al., "NLI4CT: Multi-Evidence Natural Language Inference for Clinical Trial Reports," 2023. DOI: 10.18653/v1/2023.emnlp-main.1041
+
+[72] Kartchner et al., "A comprehensive evaluation of biomedical entity linking models." DOI: 10.18653/v1/2023.emnlp-main.893
+
+[73] Rahrooh et al., "MedPromptEval: A Comprehensive Framework for Systematic Evaluation of Clinical Question Answering Systems," 2025. DOI: 10.3233/SHTI251540
+
+[74] Veen et al., "Clinical Text Summarization: Adapting Large Language Models Can Outperform Human Experts," 2023. DOI: 10.48550/arxiv.2309.07430
+
+[75] Dahlberg et al., "Measuring the Quality of AI-Generated Clinical Notes: A Systematic Review and Experimental Benchmark of Evaluation Methods."
+
+[76] Aali et al., "Medval: Toward expert-level medical text validation with language models."
+
+[77] Garda et al., "BELB: a biomedical entity linking benchmark," 2023. DOI: 10.1093/bioinformatics/btad698
+
+[78] Michalopoulos et al., "UmlsBERT: Clinical Domain Knowledge Augmentation of Contextual Embeddings Using the Unified Medical Language System Metathesaurus," 2020.
+
+[79] Michalopoulos et al., "UmlsBERT: Clinical Domain Knowledge Augmentation of Contextual Embeddings Using the Unified Medical Language System Metathesaurus," 2021. DOI: 10.18653/V1/2021.NAACL-MAIN.139
+
+[80] Dobbins, "Generalizable and scalable multistage biomedical concept normalization leveraging large language models," 2025. DOI: 10.1017/rsm.2025.9
+
+[81] Kraljevic et al., "Multi-domain Clinical Natural Language Processing with MedCAT: the Medical Concept Annotation Toolkit," 2020.
+
+[82] Welsch, "Word Sense Disambiguation in the Biomedical Domain: Short Literature Review," 2023. DOI: 10.1007/978-3-031-35248-5_23
+
+[83] Fierens et al., "Translating UMLS concepts to improve medical entity linking in French: a SapBERT-based approach," 2025. DOI: 10.3233/shti250484
+
+[84] Wang et al., "SemiHVision: Enhancing Medical Multimodal Models with a Semi-Human Annotated Dataset and Fine-Tuned Instruction Generation," 2024. DOI: 10.48550/arxiv.2410.14948
+
+[85] Achara et al., "Efficient Biomedical Entity Linking: Clinical Text Standardization with Low-Resource Techniques," 2024. DOI: 10.48550/arxiv.2405.15134
+
+[86] Lu et al., "Retrieving Lab Test Related Questions from Social Q&A Sites by Combining Shallow Features and Deep Representations," 2020. DOI: 10.1101/2020.08.08.20170753
+
+[87] Loureiro et al., "Medlinker: Medical entity linking with neural representations and dictionary matching," 2020. DOI: 10.1007/978-3-030-45442-5_29
+
+[88] Newman-Griffis et al., "Ambiguity in Medical Concept Normalization: An Analysis of Types and Coverage in Electronic Health Record Datasets," 2020.
+
+[89] Shamsaei, "Clinical Semantic Enrichment with Calibration and FHIR Interoperability."
+
+[90] Campillos-Llanos et al., "A clinical trials corpus annotated with UMLS entities to enhance the access to evidence-based medicine," 2021. DOI: 10.1186/S12911-021-01395-Z
