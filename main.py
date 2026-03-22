@@ -540,6 +540,8 @@ def process_question(
         "entailment_pairs": [],
         "concepts": {},
         "umls_configured": _safe_import_umls_linker_configured()(),
+        "umls_density": {},
+        "umls_specificity": {},
         "errors": [],
         "duration_s": None,
     }
@@ -568,12 +570,29 @@ def process_question(
         record["concepts"] = {"per_step": [[] for _ in steps], "meta": {"error": str(e)}}
 
     # 3) Entailment
+    umls_per_step = list(record["concepts"].get("per_step") or [[] for _ in steps])
     try:
-        umls_per_step = list(record["concepts"].get("per_step") or [[] for _ in steps])
         record["entailment_pairs"] = _entailment_with_umls(steps, umls_per_step)
     except Exception as e:
         logging.warning("[entailment] failed: %s", e)
         record["errors"].append(f"entailment: {e}")
+
+    # 3c) UMLS standalone signals
+    try:
+        from utils.umls_density_scorer import score_density
+        record["umls_density"] = score_density(umls_per_step, steps=steps)
+    except Exception as e:
+        logging.warning("[umls_density] failed: %s", e)
+        record["umls_density"] = {"configured": False, "per_step": [], "slope": None,
+                                   "leakage_onset_step": None, "overall_risk": 0.0}
+
+    try:
+        from utils.umls_specificity_scorer import score_specificity
+        record["umls_specificity"] = score_specificity(umls_per_step)
+    except Exception as e:
+        logging.warning("[umls_specificity] failed: %s", e)
+        record["umls_specificity"] = {"configured": False, "per_step": [], "depth_slope": None,
+                                       "abstraction_leaps": [], "overall_specificity_score": 0.0}
 
     # 3b) Guard signals (using UMLS relation metadata from hybrid checker)
     try:
