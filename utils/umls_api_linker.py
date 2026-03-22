@@ -176,15 +176,20 @@ def _inject_key(params: Dict[str, Any], apikey: str) -> Dict[str, Any]:
 
 def _api_get(path: str, params: Dict[str, Any]) -> requests.Response:
     last_exc: Optional[Exception] = None
+    _headers = {
+        "User-Agent": "UMLS-Toolkit/apikey",
+        "Accept": "application/json",
+    }
     for attempt in range(MAX_RETRIES + 1):
         try:
             with _INFLIGHT:  # cap concurrent calls globally
-                r = SES.get(
+                r = requests.get(
                     f"{UTS_REST}{path}",
                     params=params,
+                    headers=_headers,
                     timeout=(CONNECT_TIMEOUT, REQ_TIMEOUT),
                 )
-            # Retry on soft failures guided by Retry adapter; here handle manual cases too.
+            # Retry on soft failures
             if r.status_code in (408, 429, 500, 502, 503, 504):
                 _backoff(attempt); continue
             r.raise_for_status()
@@ -417,7 +422,10 @@ def _cached_search(
     if _is_trivial(term_norm) or _looks_like_noise(term_norm):
         return (), (), (), (), ()
 
-    cache_key = f"{term_norm.lower()}|{page_size}|{sabs}|{ttys}|{search_type}"
+    # Include a short key fingerprint so results are never shared across different API keys
+    # (prevents stale empty results from keyless runs poisoning valid-key runs)
+    _key_prefix = apikey[:8] if apikey else "nokey"
+    cache_key = f"{_key_prefix}|{term_norm.lower()}|{page_size}|{sabs}|{ttys}|{search_type}"
     with _CACHE_LOCK:
         if cache_key in _CACHE:
             try:
@@ -439,7 +447,8 @@ def _cached_search(
 
     try:
         data = _api_get("/search/current", _inject_key(params, apikey)).json()
-        results = data.get("result", {}).get("results", []) or []
+        _raw = data.get("result", {}).get("results", []) or []
+        results = [r for r in _raw if isinstance(r, dict)]
     except Exception as e:
         log.debug("[UMLS] search failed for %r (%s): %s", term_norm, search_type or "default", e)
         results = []
