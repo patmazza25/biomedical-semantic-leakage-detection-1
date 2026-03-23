@@ -18,7 +18,7 @@ SPECIFICITY_SLOPE_SCALE    = 0.2               # converts slope → score; slope
 def _cached_atoms_for_cui(apikey: str, version: str, cui: str) -> Tuple[Tuple[str, str], ...]:
     try:
         from utils.umls_api_linker import atoms_for_cui
-        atoms = atoms_for_cui(apikey, version, cui)
+        atoms = atoms_for_cui(apikey, version, cui, max_pages=1)
         return tuple(
             (a.get("rootSource", ""), a.get("code", ""))
             for a in atoms
@@ -33,7 +33,7 @@ def _cached_atoms_for_cui(apikey: str, version: str, cui: str) -> Tuple[Tuple[st
 def _cached_ancestor_depth(apikey: str, version: str, source: str, code: str) -> Optional[int]:
     try:
         from utils.umls_api_linker import hierarchy_for_source_code
-        ancestors = hierarchy_for_source_code(apikey, version, source, code, "ancestors")
+        ancestors = hierarchy_for_source_code(apikey, version, source, code, "ancestors", max_pages=1)
         return len(ancestors)
     except Exception as e:
         logging.debug("[specificity] hierarchy(%s/%s) failed: %s", source, code, e)
