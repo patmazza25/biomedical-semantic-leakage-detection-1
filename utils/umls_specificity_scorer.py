@@ -183,6 +183,7 @@ def score_specificity(
 
     # Guard: UMLS must be configured
     try:
+        import os as _os
         from utils.umls_api_linker import is_configured, UMLS_API_KEY, DEFAULT_VERSION
         configured = is_configured()
     except Exception:
@@ -194,7 +195,8 @@ def score_specificity(
     if not per_step_concepts:
         return {**null_schema, "configured": True}
 
-    apikey: str = UMLS_API_KEY
+    # Read key at call-time so keys set after module import are picked up
+    apikey: str = _os.getenv("UMLS_API_KEY", "") or UMLS_API_KEY
     version: str = DEFAULT_VERSION
 
     # Build per-step depth records

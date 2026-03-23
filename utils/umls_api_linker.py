@@ -61,7 +61,9 @@ except Exception:
     UMLS_AUTH_ENDPOINT = os.getenv("UMLS_AUTH_ENDPOINT", "https://utslogin.nlm.nih.gov")
 
 def is_configured() -> bool:
-    key_ok = bool(UMLS_API_KEY) and UMLS_API_KEY.strip().lower() not in {"", "your_key_here", "changeme"}
+    # Read from env at call-time so keys set after import are picked up
+    key = UMLS_API_KEY or os.getenv("UMLS_API_KEY", "")
+    key_ok = bool(key) and key.strip().lower() not in {"", "your_key_here", "changeme"}
     rest_ok = bool(UMLS_REST_ENDPOINT)
     return key_ok and rest_ok
 
