@@ -118,7 +118,14 @@ def _try_load(model_name: str) -> bool:
         _DEV = _pick_device()
         log.info("[entailment] loading NLI model: %s (device=%s)", model_name, _DEV)
         _TOK = AutoTokenizer.from_pretrained(model_name)
-        _MOD = AutoModelForSequenceClassification.from_pretrained(model_name)
+        try:
+            _MOD = AutoModelForSequenceClassification.from_pretrained(model_name)
+        except Exception:
+            # LoRA adapter format — base model is declared in adapter_config.json
+            from peft import AutoPeftModelForSequenceClassification  # type: ignore
+            _MOD = AutoPeftModelForSequenceClassification.from_pretrained(
+                model_name, ignore_mismatched_sizes=True
+            )
         _MOD.eval()
         if _DEV != "cpu":
             _MOD.to(_DEV)

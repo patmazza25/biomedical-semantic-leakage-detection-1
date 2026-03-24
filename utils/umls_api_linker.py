@@ -951,6 +951,31 @@ def atoms_for_cui(apikey: str, version: str, cui: str, page_size: int = 25, max_
         if page >= max_pages: break
     return acc
 
+def atoms_for_cui_direct(
+    apikey: str,
+    version: str,
+    cui: str,
+    page_size: int = 25,
+    max_pages: int = 1,
+) -> List[Dict[str, Any]]:
+    """
+    Fetch atoms for a CUI via /content/{version}/CUI/{cui}/atoms directly,
+    without calling content_by_cui_cached first.  Avoids the ~6s round-trip
+    to /content/CUI/{cui} whose only purpose is to return the atoms URL.
+    """
+    acc: List[Dict[str, Any]] = []
+    for page in range(1, max_pages + 1):
+        r = _api_get(
+            f"/content/{version}/CUI/{cui}/atoms",
+            _inject_key({"pageNumber": page, "pageSize": page_size}, apikey),
+        )
+        items = r.json().get("result") or []
+        if not items:
+            break
+        acc.extend(items)
+    return acc
+
+
 def hierarchy_for_source_code(apikey: str, version: str, source: str, identifier: str, operation: str, page_size: int = 25, max_pages: int = 100) -> List[Dict[str, Any]]:
     acc: List[Dict[str, Any]] = []; page = 0
     while True:

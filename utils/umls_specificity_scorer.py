@@ -18,8 +18,8 @@ MAX_CONCEPTS_PER_STEP      = 3                 # top-N concepts (by confidence) 
 @lru_cache(maxsize=512)
 def _cached_atoms_for_cui(apikey: str, version: str, cui: str) -> Tuple[Tuple[str, str], ...]:
     try:
-        from utils.umls_api_linker import atoms_for_cui
-        atoms = atoms_for_cui(apikey, version, cui, max_pages=1)
+        from utils.umls_api_linker import atoms_for_cui_direct
+        atoms = atoms_for_cui_direct(apikey, version, cui, max_pages=1)
         return tuple(
             (a.get("rootSource", ""), a.get("code", ""))
             for a in atoms

@@ -155,7 +155,13 @@ def _load_nli_model(model_name: Optional[str] = None) -> Optional[_NLIModel]:
         try:
             log.info("[entailment] loading NLI model: %s", name)
             tok = AutoTokenizer.from_pretrained(name)
-            mdl = AutoModelForSequenceClassification.from_pretrained(name)
+            try:
+                mdl = AutoModelForSequenceClassification.from_pretrained(name)
+            except Exception:
+                from peft import AutoPeftModelForSequenceClassification  # type: ignore
+                mdl = AutoPeftModelForSequenceClassification.from_pretrained(
+                    name, ignore_mismatched_sizes=True
+                )
             # move to device
             if device == "cuda":
                 mdl = mdl.cuda()
