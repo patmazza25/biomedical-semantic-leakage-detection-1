@@ -10,6 +10,7 @@ CONFIDENCE_THRESHOLD       = 0.5               # min scores["confidence"] to inc
 PREFERRED_SOURCES          = ["SNOMEDCT_US", "MSH"]  # vocab preference for depth queries
 ABSTRACTION_LEAP_THRESHOLD = 2.0               # depth drop magnitude to flag as sudden abstraction
 SPECIFICITY_SLOPE_SCALE    = 0.2               # converts slope → score; slope of -5 → full risk
+MAX_CONCEPTS_PER_STEP      = 3                 # top-N concepts (by confidence) processed per step
 
 
 
@@ -82,13 +83,13 @@ def _step_avg_depth(
     could be retrieved.
     """
     depths: List[int] = []
-    for concept in step_concepts:
-        if not concept.get("valid"):
-            continue
-        conf = (concept.get("scores") or {}).get("confidence", 0.0)
-        if conf < CONFIDENCE_THRESHOLD:
-            continue
-
+    # Take top-N concepts by confidence to limit API calls per step
+    candidates = [
+        c for c in step_concepts
+        if c.get("valid") and (c.get("scores") or {}).get("confidence", 0.0) >= CONFIDENCE_THRESHOLD
+    ]
+    candidates.sort(key=lambda c: (c.get("scores") or {}).get("confidence", 0.0), reverse=True)
+    for concept in candidates[:MAX_CONCEPTS_PER_STEP]:
         src_code = _get_source_code(concept, apikey, version)
         if src_code is None:
             continue
