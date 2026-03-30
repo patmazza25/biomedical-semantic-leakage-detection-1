@@ -26,7 +26,7 @@ def _cached_atoms_for_cui(apikey: str, version: str, cui: str) -> Tuple[Tuple[st
             if a.get("rootSource") and a.get("code")
         )
     except Exception as e:
-        logging.debug("[specificity] atoms_for_cui(%s) failed: %s", cui, e)
+        print(f"  [specificity_err] atoms_for_cui({cui}) failed: {e}")
         return ()
 
 
@@ -37,7 +37,7 @@ def _cached_ancestor_depth(apikey: str, version: str, source: str, code: str) ->
         ancestors = hierarchy_for_source_code(apikey, version, source, code, "ancestors", max_pages=1)
         return len(ancestors)
     except Exception as e:
-        logging.debug("[specificity] hierarchy(%s/%s) failed: %s", source, code, e)
+        print(f"  [specificity_err] hierarchy({source}/{code}) failed: {e}")
         return None
 
 

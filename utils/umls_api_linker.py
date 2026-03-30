@@ -185,7 +185,7 @@ def _api_get(path: str, params: Dict[str, Any]) -> requests.Response:
     for attempt in range(MAX_RETRIES + 1):
         try:
             with _INFLIGHT:  # cap concurrent calls globally
-                r = requests.get(
+                r = SES.get(
                     f"{UTS_REST}{path}",
                     params=params,
                     headers=_headers,
