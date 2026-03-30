@@ -10,7 +10,7 @@ CONFIDENCE_THRESHOLD       = 0.5               # min scores["confidence"] to inc
 PREFERRED_SOURCES          = ["SNOMEDCT_US", "MSH"]  # vocab preference for depth queries
 ABSTRACTION_LEAP_THRESHOLD = 2.0               # depth drop magnitude to flag as sudden abstraction
 SPECIFICITY_SLOPE_SCALE    = 0.2               # converts slope → score; slope of -5 → full risk
-MAX_CONCEPTS_PER_STEP      = 3                 # top-N concepts (by confidence) processed per step
+MAX_CONCEPTS_PER_STEP      = 1                 # top-N concepts (by confidence) processed per step
 
 
 
@@ -204,8 +204,18 @@ def score_specificity(
     per_step_records = []
     step_depths: List[Optional[float]] = []
 
-    for i, step_concepts in enumerate(per_step_concepts):
-        avg_depth, concept_count = _step_avg_depth(step_concepts, apikey, version)
+    from concurrent.futures import ThreadPoolExecutor
+
+    # Because UMLS API requests can be slow, parallelize the fetching
+    # across steps. This cuts down the total response time drastically.
+    with ThreadPoolExecutor(max_workers=min(12, len(per_step_concepts) + 1)) as executor:
+        futures = [
+            executor.submit(_step_avg_depth, step_concepts, apikey, version)
+            for step_concepts in per_step_concepts
+        ]
+        results = [fut.result() for fut in futures]
+
+    for i, (avg_depth, concept_count) in enumerate(results):
         step_depths.append(avg_depth)
         per_step_records.append({
             "step_index": i,

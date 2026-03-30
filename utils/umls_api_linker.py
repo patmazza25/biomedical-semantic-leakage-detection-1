@@ -194,8 +194,18 @@ def _api_get(path: str, params: Dict[str, Any]) -> requests.Response:
             # Retry on soft failures
             if r.status_code in (408, 429, 500, 502, 503, 504):
                 _backoff(attempt); continue
+                
+            # Raise client errors immediately without retry
+            if r.status_code in (400, 401, 403, 404):
+                r.raise_for_status()
+
             r.raise_for_status()
             return r
+        except requests.exceptions.HTTPError as e:
+            if e.response is not None and e.response.status_code in (400, 401, 403, 404):
+                raise
+            last_exc = e
+            _backoff(attempt)
         except Exception as e:
             last_exc = e
             _backoff(attempt)
