@@ -15,13 +15,20 @@ MAX_CONCEPTS_PER_STEP      = 1                 # top-N concepts (by confidence) 
 
 
 
+def _extract_source_code(code_val: str) -> str:
+    """Extract just the source code identifier from a full UMLS REST URL or plain code."""
+    if code_val and code_val.startswith("http"):
+        return code_val.rstrip("/").split("/")[-1]
+    return code_val
+
+
 @lru_cache(maxsize=512)
 def _cached_atoms_for_cui(apikey: str, version: str, cui: str) -> Tuple[Tuple[str, str], ...]:
     try:
         from utils.umls_api_linker import atoms_for_cui_direct
         atoms = atoms_for_cui_direct(apikey, version, cui, max_pages=1)
         return tuple(
-            (a.get("rootSource", ""), a.get("code", ""))
+            (a.get("rootSource", ""), _extract_source_code(a.get("code", "")))
             for a in atoms
             if a.get("rootSource") and a.get("code")
         )
